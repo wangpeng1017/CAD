@@ -14,7 +14,11 @@ app = FastAPI(
 # CORS 配置
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js 开发服务器
+    allow_origins=[
+        "http://localhost:3000",  # Next.js 开发服务器
+        "https://cad.aifly.me",   # 生产环境前端
+        "http://cad.aifly.me",    # 生产环境前端（HTTP）
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
