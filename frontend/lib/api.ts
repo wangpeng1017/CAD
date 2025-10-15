@@ -1,4 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+// Use relative path to call Next.js API routes that proxy to backend
+const API_BASE_URL = ''
 
 export async function uploadFile(file: File) {
   const formData = new FormData()
