@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: cad-checker-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+    environment:
+      - DEBUG=true
+      - HOST=0.0.0.0
+      - PORT=8000
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - cad-network
+
+  frontend:
+    build: ./frontend
+    container_name: cad-checker-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    command: npm run dev
+    networks:
+      - cad-network
+    depends_on:
+      - backend
+
+volumes:
+  backend_uploads:
+
+networks:
+  cad-network:
+    driver: bridge

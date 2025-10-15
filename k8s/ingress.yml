@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cad-ingress
+  annotations:
+    # 如果使用 Leaflow 提供的证书
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    # Nginx Ingress 配置
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - cad.your-domain.com
+    secretName: cad-tls
+  rules:
+  - host: cad.your-domain.com
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: cad-backend
+            port:
+              number: 8000
+      - path: /docs
+        pathType: Prefix
+        backend:
+          service:
+            name: cad-backend
+            port:
+              number: 8000
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cad-frontend
+            port:
+              number: 3000
