@@ -23,7 +23,7 @@ spec:
           name: http
         env:
         - name: NEXT_PUBLIC_API_URL
-          value: "http://cad-backend:8000"
+          value: "http://103.109.20.169:10437"
         resources:
           requests:
             memory: "512Mi"
