@@ -43,6 +43,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./frontend
+        file: ./frontend/Dockerfile.dev
         push: true
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/cad-frontend:latest
