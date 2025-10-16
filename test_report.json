@@ -1,0 +1,26 @@
+{
+  "analysis_id": "7e8e3f20-bd18-43b1-9489-de79f95efd0c",
+  "file_id": "8cc83b60-4aa2-403f-9dfa-783925648155",
+  "filename": "8cc83b60-4aa2-403f-9dfa-783925648155.dxf",
+  "standard": "GB/T 14665-2012",
+  "analysis_time": "2025-10-16 04:22:06.436320",
+  "total_violations": 1,
+  "critical_count": 0,
+  "warning_count": 0,
+  "info_count": 1,
+  "violations": [
+    {
+      "id": "f2deaa4d-f468-4d17-a0ca-00a7e50fa242",
+      "type": "图层错误",
+      "severity": "提示",
+      "rule": "GB/T 14665-2012 表6 - 图层规则",
+      "description": "文字应位于专用图层（如：文字, TEXT, NOTE），当前位于: 0",
+      "entity_handle": "4",
+      "layer": "0",
+      "location": null,
+      "suggestion": "将文字移至 文字 图层"
+    }
+  ],
+  "is_compliant": true,
+  "compliance_score": 98.0
+}

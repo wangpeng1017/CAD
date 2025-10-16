@@ -1,0 +1,58 @@
+
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <title>CAD 合规检查报告</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            h1 { color: #333; }
+            table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+            th { background-color: #4CAF50; color: white; }
+            .summary { background-color: #f9f9f9; padding: 20px; margin: 20px 0; }
+            .compliant { color: green; }
+            .non-compliant { color: red; }
+        </style>
+    </head>
+    <body>
+        <h1>CAD 合规检查报告</h1>
+        <div class="summary">
+            <p><strong>文件名:</strong> 8cc83b60-4aa2-403f-9dfa-783925648155.dxf</p>
+            <p><strong>检查标准:</strong> GB/T 14665-2012</p>
+            <p><strong>分析时间:</strong> 2025-10-16 04:22:06.436320</p>
+            <p><strong>合规状态:</strong> 
+                <span class="compliant">
+                    合规
+                </span>
+            </p>
+            <p><strong>合规得分:</strong> 98.0/100</p>
+            <p><strong>违规总数:</strong> 1 
+                (严重: 0, 警告: 0, 提示: 1)
+            </p>
+        </div>
+        
+        <h2>违规详情</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>类型</th>
+                    <th>严重程度</th>
+                    <th>规则</th>
+                    <th>描述</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        <tr>
+            <td>图层错误</td>
+            <td>提示</td>
+            <td>GB/T 14665-2012 表6 - 图层规则</td>
+            <td>文字应位于专用图层（如：文字, TEXT, NOTE），当前位于: 0</td>
+        </tr>
+        
+            </tbody>
+        </table>
+    </body>
+    </html>
+    
