@@ -14,58 +14,39 @@ export default function Home() {
   const handleFileUpload = async (file: File) => {
     setError(null)
     setUploading(true)
+    setAnalyzing(true)
 
     try {
-      // 上传文件
+      // 上传并分析（合并为一个 API 调用）
       const formData = new FormData()
       formData.append('file', file)
       
-      const uploadRes = await fetch('/api/upload', {
+      const response = await fetch('/api/check', {
         method: 'POST',
         body: formData
       })
       
-      if (!uploadRes.ok) {
-        const errorData = await uploadRes.json()
-        throw new Error(errorData.error || '上传失败')
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '处理失败')
       }
       
-      const uploadData = await uploadRes.json()
-      console.log('文件上传成功:', uploadData)
-
-      // 开始分析
-      setUploading(false)
-      setAnalyzing(true)
-
-      const analysisRes = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          file_id: uploadData.file_id,
-          standard: 'GB/T 14665-2012'
-        })
-      })
-      
-      if (!analysisRes.ok) {
-        const errorData = await analysisRes.json()
-        throw new Error(errorData.error || '分析失败')
-      }
-      
-      const analysisData = await analysisRes.json()
-      console.log('分析完成:', analysisData)
+      const data = await response.json()
+      console.log('分析完成:', data)
 
       // 保存报告到 localStorage
-      if (analysisData.report) {
+      if (data.report) {
         localStorage.setItem(
-          `report_${analysisData.analysis_id}`,
-          JSON.stringify(analysisData.report)
+          `report_${data.analysis_id}`,
+          JSON.stringify(data.report)
         )
       }
 
       // 跳转到结果页面
-      router.push(`/result/${analysisData.analysis_id}`)
+      router.push(`/result/${data.analysis_id}`)
     } catch (err: any) {
       setError(err.message || '操作失败，请重试')
+    } finally {
       setUploading(false)
       setAnalyzing(false)
     }
