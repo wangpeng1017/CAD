@@ -34,6 +34,17 @@ services:
     depends_on:
       - backend
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cad-cloudflared
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - cad-network
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+
 volumes:
   backend_uploads:
 

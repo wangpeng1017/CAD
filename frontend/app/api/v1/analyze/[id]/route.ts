@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://cad-backend:8000'
+const BACKEND_URL = process.env.BACKEND_URL || 'http://103.109.20.169:10437'
 
 export async function GET(
   request: NextRequest,
