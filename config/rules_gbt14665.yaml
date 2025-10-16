@@ -1,0 +1,125 @@
+# GB/T 14665-2012 机械工程CAD制图规则配置
+
+standard:
+  name: "GB/T 14665-2012"
+  description: "机械工程CAD制图规则"
+
+# 图层规则 (标准表6)
+layers:
+  粗实线层:
+    name: "粗实线层"
+    expected_names: ["粗实线", "THICK", "VISIBLE"]
+    purpose: "可见轮廓线"
+    lineweight: 0.5  # mm
+    color: 7  # 白色
+    
+  细实线层:
+    name: "细实线层"
+    expected_names: ["细实线", "THIN", "HIDDEN"]
+    purpose: "尺寸线、尺寸界线、剖面线等"
+    lineweight: 0.25
+    color: 7
+    
+  虚线层:
+    name: "虚线层"
+    expected_names: ["虚线", "DASHED", "HIDDEN"]
+    purpose: "不可见轮廓线"
+    lineweight: 0.35
+    color: 7
+    
+  点划线层:
+    name: "点划线层"
+    expected_names: ["点划线", "CENTER", "AXIS"]
+    purpose: "轴线、对称中心线"
+    lineweight: 0.25
+    color: 7
+    
+  文字层:
+    name: "文字层"
+    expected_names: ["文字", "TEXT", "NOTE"]
+    purpose: "文字说明"
+    lineweight: 0.25
+    color: 7
+    
+  尺寸层:
+    name: "尺寸层"
+    expected_names: ["尺寸", "DIMENSION", "DIM"]
+    purpose: "尺寸标注"
+    lineweight: 0.25
+    color: 7
+
+# 线宽规则 (标准表1)
+lineweights:
+  thick_line: 0.5  # 粗实线
+  medium_line: 0.35  # 中等线
+  thin_line: 0.25  # 细线
+  tolerance: 0.05  # 允许误差
+
+# 颜色规则 (标准表2)
+colors:
+  default: 7  # 默认白色
+  bylayer: 256  # 随层
+  byblock: 0  # 随块
+
+# 字体规则 (标准表3)
+fonts:
+  # 根据图纸幅面的推荐字高 (mm)
+  A0:
+    chinese: 5.0
+    alphanumeric: 3.5
+  A1:
+    chinese: 5.0
+    alphanumeric: 3.5
+  A2:
+    chinese: 5.0
+    alphanumeric: 3.5
+  A3:
+    chinese: 5.0
+    alphanumeric: 3.5
+  A4:
+    chinese: 5.0
+    alphanumeric: 3.5
+  
+  min_height: 2.5  # 最小字高
+  max_height: 10.0  # 最大字高
+  tolerance: 0.5  # 允许误差
+
+# 尺寸标注规则 (标准6.3节)
+dimensions:
+  arrow_types:
+    - "实心箭头"
+    - "空心箭头"
+    - "斜线"
+    - "圆点"
+  
+  consistency_threshold: 0.95  # 一致性阈值：95%以上使用同一类型
+  
+  text_alignment:
+    horizontal: true  # 水平尺寸文字是否对齐
+    vertical: true  # 垂直尺寸文字是否对齐
+  
+  min_text_height: 2.5
+  min_arrow_size: 2.0
+  
+  # 尺寸界线与尺寸线的距离
+  extension_gap: 1.0  # mm
+  extension_tolerance: 0.5
+
+# 文字规则 (标准5.4节)
+text:
+  use_simplified_chinese: true  # 必须使用国家规定的简化字
+  avoid_繁体字: true
+  
+  # 技术要求的文字要求
+  technical_requirements:
+    clear: true  # 表述清晰
+    complete: true  # 内容完整
+    no_contradiction: true  # 无矛盾
+
+# 检查权重配置
+check_weights:
+  layer: 0.25
+  lineweight: 0.20
+  color: 0.10
+  font: 0.20
+  dimension: 0.25

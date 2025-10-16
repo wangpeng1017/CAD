@@ -1,184 +1,188 @@
 # CAD 规范符合性检查器
 
-AI 驱动的Web应用，自动化检查CAD图纸是否符合既定的工程标准（专注于GB/T 14665-2012）。
+AI 驱动的 CAD 图纸自动检查系统，支持 GB/T 14665-2012 机械工程 CAD 制图规则标准。
 
 ## 项目结构
 
 ```
 CAD/
-├── backend/              # FastAPI 后端
+├── api/                    # Vercel Serverless Functions
+│   ├── upload.py          # 文件上传 API
+│   └── analyze.py         # 文件分析 API
+├── checker/               # 核心检查模块
+│   ├── __init__.py
+│   ├── models.py          # 数据模型
+│   ├── parser.py          # DXF 解析器
+│   └── checker.py         # 合规性检查器
+├── config/                # 配置文件
+│   └── rules_gbt14665.yaml # GB/T 14665-2012 规则
+├── frontend/              # Next.js 前端应用
 │   ├── app/
-│   │   ├── api/         # API 路由
-│   │   ├── models/      # 数据模型
-│   │   ├── services/    # 业务逻辑服务
-│   │   └── utils/       # 工具函数
-│   ├── config/          # 规则配置文件
-│   ├── tests/           # 测试
-│   └── uploads/         # 临时文件存储
-├── frontend/            # Next.js 前端
-│   ├── app/             # 页面
-│   ├── components/      # 组件
-│   ├── lib/             # API 库
-│   └── types/           # TypeScript 类型
-├── docker-compose.yml
-└── prd.md              # 产品需求文档
+│   │   ├── page.tsx       # 首页
+│   │   ├── result/[id]/   # 报告页面
+│   │   └── layout.tsx
+│   ├── components/        # React 组件
+│   └── types/             # TypeScript 类型定义
+├── requirements.txt       # Python 依赖
+├── vercel.json           # Vercel 配置
+└── prd.md                # 产品需求文档
 ```
 
-## Phase 1 MVP 功能
+## 功能特点
 
-✅ 已实现的功能：
+### ✅ 第一阶段（MVP）- 已完成
 
-### 后端
-- **文件上传与解析**：支持 DXF 和 **DWG** 文件上传，使用 ezdxf 解析，自动 DWG 转换
-- **规则检查引擎**：
-  - 图层检查（GB/T 14665-2012 表6）
-  - 线宽检查（表1）
-  - 颜色检查（表2）
-  - 字体检查（表3）
-  - 尺寸标注检查（6.3节）
-- **合规报告生成**：JSON/HTML 格式导出
-- **RESTful API**：完整的 CRUD 接口
+- **文件上传与解析** (P1-F01)
+  - 支持 DXF 文件格式
+  - 最大文件大小：10MB
+  - 快速解析和结构化数据提取
 
-### 前端
-- **文件上传界面**：拖放式上传，支持 DXF 格式
-- **实时分析状态**：轮询获取分析进度
-- **报告展示页面**：
-  - 合规性总结卡片
-  - 违规项详细列表
+- **基础规则检查** (P1-F02)
+  - ✓ 图层规范检查（GB/T 14665-2012 表6）
+  - ✓ 线宽规范检查（GB/T 14665-2012 表1）
+  - ✓ 颜色规范检查（GB/T 14665-2012 表2）
+  - ✓ 字体规范检查（GB/T 14665-2012 表3）
+  - ✓ 尺寸标注检查（GB/T 14665-2012 6.3节）
+
+- **合规性报告** (P1-F03)
+  - 详细的违规项列表
+  - 合规得分计算
   - 修复建议
-  - 报告导出功能
+  - 支持复制到剪贴板
+  - 支持下载 JSON 格式报告
 
-## 技术栈
-
-### 后端
-- **语言**: Python 3.11+
-- **框架**: FastAPI
-- **CAD 解析**: ezdxf
-- **几何计算**: shapely (Phase 2)
-- **数据验证**: Pydantic
-- **配置管理**: YAML
+## 技术架构
 
 ### 前端
-- **框架**: Next.js 15 (App Router)
+- **框架**: Next.js 14 (App Router)
 - **语言**: TypeScript
 - **样式**: Tailwind CSS
-- **组件**: React Dropzone
+- **部署**: Vercel
 
-### 部署
-- **容器化**: Docker & Docker Compose
-- **前端托管**: Vercel-ready
-- **后端托管**: 任何支持 Docker 的平台
+### 后端
+- **语言**: Python 3.9+
+- **核心库**: 
+  - `ezdxf` - DXF 文件解析
+  - `pydantic` - 数据验证
+  - `PyYAML` - 配置管理
+- **API**: Vercel Serverless Functions
+- **部署**: Vercel
 
-## 快速开始
+## 本地开发
 
-### 前提条件
-- Python 3.11+
+### 前置要求
+
 - Node.js 18+
-- Docker & Docker Compose (可选)
+- Python 3.9+
+- npm 或 yarn
 
-### 本地开发
-
-#### 1. 后端
+### 安装依赖
 
 ```bash
-cd backend
-
-# 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 安装依赖
+# 安装 Python 依赖
 pip install -r requirements.txt
 
-# 复制环境变量
-copy .env.example .env
-
-# 启动服务
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# 安装前端依赖
+cd frontend
+npm install
 ```
 
-访问 http://localhost:8000/docs 查看 API 文档
-
-#### 2. 前端
+### 启动开发服务器
 
 ```bash
+# 在项目根目录
 cd frontend
-
-# 安装依赖
-npm install
-
-# 启动开发服务器
 npm run dev
 ```
 
 访问 http://localhost:3000
 
-### Docker 部署
+### 使用 Vercel CLI 本地测试
 
 ```bash
-# 构建并启动所有服务
-docker-compose up --build
+# 安装 Vercel CLI
+npm install -g vercel
 
-# 后台运行
-docker-compose up -d
-
-# 停止服务
-docker-compose down
+# 在项目根目录运行
+vercel dev
 ```
+
+## 部署到 Vercel
+
+### 一键部署
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/cad-checker)
+
+### 手动部署
+
+```bash
+# 登录 Vercel
+vercel login
+
+# 部署
+vercel --prod
+```
+
+### 环境配置
+
+在 Vercel 项目设置中配置以下环境变量（如需要）：
+
+- `PYTHON_VERSION`: `3.9`
 
 ## API 文档
 
-### 上传文件
-```
-POST /api/v1/upload
-Content-Type: multipart/form-data
+### POST /api/upload
 
-Response:
+上传 DXF 文件
+
+**请求**:
+- Content-Type: `multipart/form-data`
+- Body: file (DXF 文件)
+
+**响应**:
+```json
 {
   "file_id": "uuid",
   "filename": "example.dxf",
-  "size": 1024,
-  "upload_time": "2025-10-13T..."
+  "size": 1024000,
+  "upload_time": "2025-10-16T14:00:00",
+  "message": "文件上传成功"
 }
 ```
 
-### 启动分析
-```
-POST /api/v1/analyze
-Content-Type: application/json
+### POST /api/analyze
 
+分析上传的文件
+
+**请求**:
+```json
 {
   "file_id": "uuid",
   "standard": "GB/T 14665-2012"
 }
+```
 
-Response:
+**响应**:
+```json
 {
   "analysis_id": "uuid",
   "file_id": "uuid",
-  "status": "pending"
+  "status": "completed",
+  "message": "分析完成",
+  "report": {
+    "analysis_id": "uuid",
+    "filename": "example.dxf",
+    "standard": "GB/T 14665-2012",
+    "analysis_time": "2025-10-16T14:00:00",
+    "total_violations": 5,
+    "critical_count": 0,
+    "warning_count": 3,
+    "info_count": 2,
+    "is_compliant": true,
+    "compliance_score": 85.0,
+    "violations": [...]
+  }
 }
-```
-
-### 获取报告
-```
-GET /api/v1/report/{analysis_id}
-
-Response:
-{
-  "analysis_id": "uuid",
-  "filename": "example.dxf",
-  "standard": "GB/T 14665-2012",
-  "total_violations": 5,
-  "is_compliant": false,
-  "compliance_score": 75.0,
-  "violations": [...]
-}
-```
-
-### 导出报告
-```
-GET /api/v1/report/{analysis_id}/export?format=json|html|pdf
 ```
 
 ## DWG 文件支持 🆕

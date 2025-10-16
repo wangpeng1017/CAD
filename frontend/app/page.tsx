@@ -17,18 +17,53 @@ export default function Home() {
 
     try {
       // 上传文件
-      const uploadResponse = await uploadFile(file)
-      console.log('文件上传成功:', uploadResponse)
+      const formData = new FormData()
+      formData.append('file', file)
+      
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+      
+      if (!uploadRes.ok) {
+        const errorData = await uploadRes.json()
+        throw new Error(errorData.error || '上传失败')
+      }
+      
+      const uploadData = await uploadRes.json()
+      console.log('文件上传成功:', uploadData)
 
       // 开始分析
       setUploading(false)
       setAnalyzing(true)
 
-      const analysisResponse = await startAnalysis(uploadResponse.file_id)
-      console.log('分析已启动:', analysisResponse)
+      const analysisRes = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          file_id: uploadData.file_id,
+          standard: 'GB/T 14665-2012'
+        })
+      })
+      
+      if (!analysisRes.ok) {
+        const errorData = await analysisRes.json()
+        throw new Error(errorData.error || '分析失败')
+      }
+      
+      const analysisData = await analysisRes.json()
+      console.log('分析完成:', analysisData)
 
-      // 跳转到报告页面
-      router.push(`/report/${analysisResponse.analysis_id}`)
+      // 保存报告到 localStorage
+      if (analysisData.report) {
+        localStorage.setItem(
+          `report_${analysisData.analysis_id}`,
+          JSON.stringify(analysisData.report)
+        )
+      }
+
+      // 跳转到结果页面
+      router.push(`/result/${analysisData.analysis_id}`)
     } catch (err: any) {
       setError(err.message || '操作失败，请重试')
       setUploading(false)
