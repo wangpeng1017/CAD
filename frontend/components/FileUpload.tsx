@@ -48,11 +48,16 @@ export default function FileUpload({ onFileSelect, uploading, analyzing }: FileU
       'application/x-acad': ['.dwg'],
       'application/autocad_drawing': ['.dwg'],
       'image/vnd.dwg': ['.dwg'],
+      'image/x-dwg': ['.dwg'],
+      'application/x-dwg': ['.dwg'],
       'application/octet-stream': ['.dxf', '.dwg']
     },
     maxFiles: 1,
     maxSize: 10 * 1024 * 1024, // 10MB
-    disabled: uploading || analyzing
+    disabled: uploading || analyzing,
+    noClick: false,
+    noKeyboard: false,
+    multiple: false
   })
 
   return (
@@ -68,7 +73,7 @@ export default function FileUpload({ onFileSelect, uploading, analyzing }: FileU
         ${(uploading || analyzing) && 'opacity-50 cursor-not-allowed'}
       `}
     >
-      <input {...getInputProps()} />
+      <input {...getInputProps()} id="file-upload-input" />
 
       {/* 图标 */}
       <div className="mb-4">
