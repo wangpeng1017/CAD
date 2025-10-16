@@ -42,7 +42,7 @@ export default function Home() {
         {/* 头部 */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            CAD 规范符合性检查器
+            CAD 规范符合性检查
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             AI 驱动的自动化 CAD 图纸检查系统 · 支持 GB/T 14665-2012 标准
