@@ -35,6 +35,7 @@ class Violation(BaseModel):
     entity_handle: Optional[str] = Field(None, description="实体句柄")
     layer: Optional[str] = Field(None, description="所在图层")
     location: Optional[dict] = Field(None, description="位置信息")
+    entity_details: Optional[dict] = Field(None, description="实体具体信息（如尺寸值、文字内容等）")
     suggestion: Optional[str] = Field(None, description="修复建议")
 
 
