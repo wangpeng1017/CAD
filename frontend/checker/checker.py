@@ -57,6 +57,7 @@ class ComplianceChecker:
         self._check_colors(dxf_data)
         self._check_fonts(dxf_data)
         self._check_dimensions(dxf_data)
+        self._check_hidden_entities(dxf_data)  # 检查隐藏/不可见图元
         
         # Phase 2: 几何关系检查
         self._check_geometry_relations(dxf_data)
@@ -299,6 +300,90 @@ class ComplianceChecker:
                     layer=dim['layer'],
                     suggestion=f"将尺寸文字高度调整至 {min_text_height}mm 以上"
                 ))
+    
+    def _check_hidden_entities(self, dxf_data: Dict[str, Any]):
+        """检查隐藏和不可见的图元"""
+        entities = dxf_data.get('entities', {})
+        
+        # 统计隐藏和不可见的图元
+        hidden_count = 0
+        invisible_count = 0
+        layer_off_entities = []
+        layer_frozen_entities = []
+        invisible_entities = []
+        
+        for entity_type, entity_list in entities.items():
+            if entity_type == "OTHER":
+                continue
+                
+            for entity in entity_list:
+                # 检查图层关闭
+                if entity.get('layer_off', False):
+                    hidden_count += 1
+                    layer_off_entities.append({
+                        "type": entity_type,
+                        "layer": entity['layer'],
+                        "handle": entity['handle']
+                    })
+                
+                # 检查图层冻结
+                if entity.get('layer_frozen', False):
+                    hidden_count += 1
+                    layer_frozen_entities.append({
+                        "type": entity_type,
+                        "layer": entity['layer'],
+                        "handle": entity['handle']
+                    })
+                
+                # 检查图元不可见属性
+                if entity.get('is_invisible', False):
+                    invisible_count += 1
+                    invisible_entities.append({
+                        "type": entity_type,
+                        "layer": entity['layer'],
+                        "handle": entity['handle']
+                    })
+        
+        # 如果有隐藏的图元，生成警告
+        if hidden_count > 0:
+            detail_info = f"共 {hidden_count} 个图元处于隐藏状态"
+            if layer_off_entities:
+                detail_info += f"\n- 图层关闭: {len(layer_off_entities)} 个，涉及图层: {', '.join(set(e['layer'] for e in layer_off_entities[:5]))}"
+            if layer_frozen_entities:
+                detail_info += f"\n- 图层冻结: {len(layer_frozen_entities)} 个，涉及图层: {', '.join(set(e['layer'] for e in layer_frozen_entities[:5]))}"
+            
+            self.violations.append(Violation(
+                id=str(uuid.uuid4()),
+                type=ViolationType.LAYER,
+                severity=SeverityLevel.WARNING,
+                rule="图元可见性检查",
+                description=f"检测到隐藏的图元，可能导致图纸不完整。{detail_info}",
+                entity_details={
+                    "hidden_count": hidden_count,
+                    "layer_off_count": len(layer_off_entities),
+                    "layer_frozen_count": len(layer_frozen_entities),
+                    "affected_layers": list(set(
+                        [e['layer'] for e in layer_off_entities] + 
+                        [e['layer'] for e in layer_frozen_entities]
+                    ))
+                },
+                suggestion="在 CAD 软件中打开所有图层，解冻冻结的图层，然后重新保存为 DXF"
+            ))
+        
+        # 如果有不可见属性的图元，生成提示
+        if invisible_count > 0:
+            self.violations.append(Violation(
+                id=str(uuid.uuid4()),
+                type=ViolationType.GEOMETRY,
+                severity=SeverityLevel.INFO,
+                rule="图元可见性检查",
+                description=f"检测到 {invisible_count} 个设置了不可见属性的图元",
+                entity_details={
+                    "invisible_count": invisible_count,
+                    "entity_types": list(set(e['type'] for e in invisible_entities))
+                },
+                suggestion="检查是否有图元被意外设置为不可见状态"
+            ))
     
     def _check_geometry_relations(self, dxf_data: Dict[str, Any]):
         """

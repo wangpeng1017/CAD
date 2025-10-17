@@ -48,7 +48,7 @@ class DXFParser:
             raise ValueError(f"文件处理错误: {str(e)}")
     
     def _extract_layers(self) -> List[Dict[str, Any]]:
-        """提取图层信息"""
+        """提取图层信息（包括可见性状态）"""
         layers = []
         for layer in self.doc.layers:
             layers.append({
@@ -57,12 +57,13 @@ class DXFParser:
                 "linetype": layer.dxf.linetype,
                 "lineweight": getattr(layer.dxf, 'lineweight', -1),
                 "is_locked": layer.is_locked(),
-                "is_off": layer.is_off()
+                "is_off": layer.is_off(),
+                "is_frozen": layer.is_frozen()
             })
         return layers
     
     def _extract_entities(self) -> Dict[str, List[Dict[str, Any]]]:
-        """提取所有图元信息"""
+        """提取所有图元信息（包括隐藏/不可见状态）"""
         entities = {
             "LINE": [],
             "CIRCLE": [],
@@ -74,14 +75,36 @@ class DXFParser:
             "OTHER": []
         }
         
+        # 获取所有图层信息用于检查可见性
+        layer_states = {}
+        for layer in self.doc.layers:
+            layer_states[layer.dxf.name] = {
+                "is_off": layer.is_off(),
+                "is_frozen": layer.is_frozen(),
+                "is_locked": layer.is_locked()
+            }
+        
         for entity in self.modelspace:
             entity_type = entity.dxftype()
+            
+            # 检查图元所在图层的状态
+            layer_name = entity.dxf.layer
+            layer_state = layer_states.get(layer_name, {})
+            is_visible = not (layer_state.get('is_off', False) or layer_state.get('is_frozen', False))
+            
+            # 检查图元自身的可见性
+            is_invisible = getattr(entity.dxf, 'invisible', 0) == 1
+            
             entity_data = {
                 "handle": entity.dxf.handle,
-                "layer": entity.dxf.layer,
+                "layer": layer_name,
                 "color": entity.dxf.color,
                 "linetype": entity.dxf.linetype,
-                "lineweight": getattr(entity.dxf, 'lineweight', -1)
+                "lineweight": getattr(entity.dxf, 'lineweight', -1),
+                "is_visible": is_visible,
+                "is_invisible": is_invisible,
+                "layer_off": layer_state.get('is_off', False),
+                "layer_frozen": layer_state.get('is_frozen', False)
             }
             
             # 根据类型提取特定信息
