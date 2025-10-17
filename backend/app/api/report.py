@@ -116,12 +116,19 @@ def _generate_html_report(report: ComplianceReport) -> str:
     """生成 HTML 报告（简化版）"""
     violations_html = ""
     for v in report.violations:
+        details_html = ""
+        if getattr(v, 'entity_details', None):
+            items = ''.join([f"<li><strong>{k}:</strong> {v_}</li>" for k, v_ in v.entity_details.items()])
+            details_html = f"<ul style=\"margin:8px 0 0 16px;color:#555;\">{items}</ul>"
         violations_html += f"""
         <tr>
             <td>{v.type.value}</td>
             <td>{v.severity.value}</td>
             <td>{v.rule}</td>
-            <td>{v.description}</td>
+            <td>
+                <div>{v.description}</div>
+                {details_html}
+            </td>
         </tr>
         """
     

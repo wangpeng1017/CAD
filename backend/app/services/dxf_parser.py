@@ -138,12 +138,30 @@ class DXFParserService:
                 "color": dim.dxf.color
             }
             
-            # 尝试获取尺寸界线和尺寸线信息
+            # 提取更详细的尺寸信息
             try:
                 measurement = dim.get_measurement()
                 dim_data["measurement"] = measurement
-            except:
-                pass
+                
+                # 提取尺寸线位置
+                if hasattr(dim.dxf, 'defpoint'):
+                    dim_data["defpoint"] = (dim.dxf.defpoint.x, dim.dxf.defpoint.y)
+                if hasattr(dim.dxf, 'defpoint2'):
+                    dim_data["defpoint2"] = (dim.dxf.defpoint2.x, dim.dxf.defpoint2.y)
+                if hasattr(dim.dxf, 'defpoint3'):
+                    dim_data["defpoint3"] = (dim.dxf.defpoint3.x, dim.dxf.defpoint3.y)
+                
+                # 提取尺寸文字位置
+                if hasattr(dim.dxf, 'text_midpoint'):
+                    dim_data["text_position"] = (dim.dxf.text_midpoint.x, dim.dxf.text_midpoint.y)
+                
+                # 获取实际显示的文字内容
+                dim_text = dim.dxf.text if dim.dxf.text else f"{measurement:.2f}"
+                dim_data["display_text"] = dim_text
+                
+            except Exception as e:
+                # 如果获取失败，记录错误但不中断
+                dim_data["parse_error"] = str(e)
             
             dimensions.append(dim_data)
         
@@ -159,9 +177,13 @@ class DXFParserService:
             if entity_type == "TEXT":
                 height = text_entity.dxf.height
                 text_content = text_entity.dxf.text
+                position = (text_entity.dxf.insert.x, text_entity.dxf.insert.y)
+                rotation = getattr(text_entity.dxf, 'rotation', 0)
             else:  # MTEXT
                 height = getattr(text_entity.dxf, 'char_height', 2.5)
                 text_content = text_entity.text
+                position = (text_entity.dxf.insert.x, text_entity.dxf.insert.y)
+                rotation = getattr(text_entity.dxf, 'rotation', 0)
             
             text_data = {
                 "handle": text_entity.dxf.handle,
@@ -169,8 +191,12 @@ class DXFParserService:
                 "layer": text_entity.dxf.layer,
                 "text": text_content,
                 "height": height,
+                "position": position,
+                "rotation": rotation,
                 "style": getattr(text_entity.dxf, 'style', 'Standard'),
-                "color": text_entity.dxf.color
+                "color": text_entity.dxf.color,
+                "linetype": text_entity.dxf.linetype,
+                "lineweight": getattr(text_entity.dxf, 'lineweight', -1)
             }
             texts.append(text_data)
         

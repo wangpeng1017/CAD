@@ -124,7 +124,7 @@ class DXFParser:
         return entities
     
     def _extract_dimensions(self) -> List[Dict[str, Any]]:
-        """提取尺寸标注信息"""
+        """提取尺寸标注信息（Phase 2: 增强几何信息）"""
         dimensions = []
         
         for dim in self.modelspace.query('DIMENSION'):
@@ -145,12 +145,30 @@ class DXFParser:
             except:
                 pass
             
+            # Phase 2: 提取尺寸线几何信息
+            try:
+                # 尝试获取尺寸线的几何点
+                # 不同类型的尺寸标注有不同的点位置属性
+                if hasattr(dim.dxf, 'defpoint'):
+                    dim_data['defpoint'] = (dim.dxf.defpoint.x, dim.dxf.defpoint.y)
+                if hasattr(dim.dxf, 'defpoint2'):
+                    dim_data['defpoint2'] = (dim.dxf.defpoint2.x, dim.dxf.defpoint2.y)
+                if hasattr(dim.dxf, 'defpoint3'):
+                    dim_data['defpoint3'] = (dim.dxf.defpoint3.x, dim.dxf.defpoint3.y)
+                if hasattr(dim.dxf, 'text_midpoint'):
+                    dim_data['text_position'] = (dim.dxf.text_midpoint.x, dim.dxf.text_midpoint.y)
+                
+                # 标记含有几何信息
+                dim_data['geometry'] = True
+            except:
+                dim_data['geometry'] = False
+            
             dimensions.append(dim_data)
         
         return dimensions
     
     def _extract_texts(self) -> List[Dict[str, Any]]:
-        """提取所有文字信息"""
+        """提取所有文字信息（Phase 2: 增强几何信息）"""
         texts = []
         
         for text_entity in self.modelspace.query('TEXT MTEXT'):
@@ -159,9 +177,13 @@ class DXFParser:
             if entity_type == "TEXT":
                 height = text_entity.dxf.height
                 text_content = text_entity.dxf.text
+                # 获取文字插入点（左下角）
+                position = (text_entity.dxf.insert.x, text_entity.dxf.insert.y)
             else:  # MTEXT
                 height = getattr(text_entity.dxf, 'char_height', 2.5)
                 text_content = text_entity.text
+                # MTEXT 的插入点位置也在 insert
+                position = (text_entity.dxf.insert.x, text_entity.dxf.insert.y)
             
             text_data = {
                 "handle": text_entity.dxf.handle,
@@ -169,6 +191,7 @@ class DXFParser:
                 "layer": text_entity.dxf.layer,
                 "text": text_content,
                 "height": height,
+                "position": position,  # Phase 2: 位置信息用于几何计算
                 "style": getattr(text_entity.dxf, 'style', 'Standard'),
                 "color": text_entity.dxf.color
             }

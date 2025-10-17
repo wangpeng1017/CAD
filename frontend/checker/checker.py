@@ -14,6 +14,7 @@ from .models import (
     ViolationType,
     SeverityLevel
 )
+from .geometry import GeometryEngine
 
 
 class ComplianceChecker:
@@ -23,6 +24,7 @@ class ComplianceChecker:
         self.standard = standard
         self.rules = self._load_rules()
         self.violations: List[Violation] = []
+        self.geometry_engine = GeometryEngine()  # Phase 2: 几何引擎
         
     def _load_rules(self) -> Dict[str, Any]:
         """加载规则配置"""
@@ -55,6 +57,9 @@ class ComplianceChecker:
         self._check_colors(dxf_data)
         self._check_fonts(dxf_data)
         self._check_dimensions(dxf_data)
+        
+        # Phase 2: 几何关系检查
+        self._check_geometry_relations(dxf_data)
         
         # 生成报告
         report = self._generate_report(dxf_data, analysis_id, file_id)
@@ -248,6 +253,28 @@ class ComplianceChecker:
                     layer=dim['layer'],
                     suggestion=f"将尺寸文字高度调整至 {min_text_height}mm 以上"
                 ))
+    
+    def _check_geometry_relations(self, dxf_data: Dict[str, Any]):
+        """
+        Phase 2: 检查几何关系（尺寸线-文字相交、对齐等）
+        """
+        dimensions = dxf_data.get('dimensions', [])
+        texts = dxf_data.get('texts', [])
+        
+        if not dimensions or not texts:
+            return
+        
+        # 尺寸线与文字相交检测
+        violations = self.geometry_engine.check_dimension_text_overlap(dimensions, texts)
+        self.violations.extend(violations)
+        
+        # 尺寸对齐检查
+        violations = self.geometry_engine.check_dimension_alignment(dimensions)
+        self.violations.extend(violations)
+        
+        # 尺寸界线间距检查
+        violations = self.geometry_engine.check_dimension_extension_line_gap(dimensions)
+        self.violations.extend(violations)
     
     def _generate_report(
         self,

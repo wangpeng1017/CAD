@@ -252,6 +252,20 @@ export default function ReportPage() {
                     </div>
                   )}
 
+                  {violation.entity_details && (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                      <p className="text-sm font-semibold text-gray-700 mb-2">实体信息</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                        {Object.entries(violation.entity_details).map(([key, value]) => (
+                          <div key={key} className="flex">
+                            <div className="w-28 text-gray-500">{key}</div>
+                            <div className="flex-1 break-all">{typeof value === 'object' ? JSON.stringify(value) : String(value)}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {violation.entity_handle && (
                     <div className="mt-2 text-xs text-gray-500">
                       实体句柄: {violation.entity_handle}

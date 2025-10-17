@@ -70,14 +70,30 @@ class ComplianceCheckerService:
         for dim in entities.get('DIMENSION', []):
             layer = dim['layer']
             if not any(exp_name.upper() in layer.upper() for exp_name in expected_dim_layers):
+                # 构建详细的实体信息
+                entity_details = {
+                    "entity_type": "尺寸标注",
+                    "measurement": dim.get('measurement', '未知'),
+                    "display_text": dim.get('display_text', ''),
+                    "position": dim.get('text_position', dim.get('defpoint', '未知位置')),
+                    "text_height": dim.get('text_height', 0),
+                    "arrow_size": dim.get('arrow_size', 0)
+                }
+                
+                # 构建更详细的描述
+                detail_info = f"测量值: {entity_details['measurement']}"
+                if entity_details['display_text']:
+                    detail_info += f", 显示文字: '{entity_details['display_text']}'"
+                
                 self.violations.append(Violation(
                     id=str(uuid.uuid4()),
                     type=ViolationType.LAYER,
                     severity=SeverityLevel.WARNING,
                     rule="GB/T 14665-2012 表6 - 图层规则",
-                    description=f"尺寸标注应位于专用图层（如：{', '.join(expected_dim_layers)}），当前位于: {layer}",
+                    description=f"尺寸标注应位于专用图层（如：{', '.join(expected_dim_layers)}），当前位于: {layer}。{detail_info}",
                     entity_handle=dim['handle'],
                     layer=layer,
+                    entity_details=entity_details,
                     suggestion=f"将尺寸标注移至 {expected_dim_layers[0]} 图层"
                 ))
         
@@ -89,14 +105,30 @@ class ComplianceCheckerService:
             if 'DIM' in layer.upper() or '尺寸' in layer:
                 continue
             if not any(exp_name.upper() in layer.upper() for exp_name in expected_text_layers):
+                # 构建详细的实体信息
+                entity_details = {
+                    "entity_type": "文字",
+                    "text_content": text.get('text', ''),
+                    "height": text.get('height', 0),
+                    "position": text.get('position', '未知位置'),
+                    "style": text.get('style', 'Standard'),
+                    "rotation": text.get('rotation', 0)
+                }
+                
+                # 构建更详细的描述
+                detail_info = f"文字内容: '{entity_details['text_content']}', 高度: {entity_details['height']:.2f}mm"
+                if entity_details['position'] != '未知位置':
+                    detail_info += f", 位置: ({entity_details['position'][0]:.2f}, {entity_details['position'][1]:.2f})"
+                
                 self.violations.append(Violation(
                     id=str(uuid.uuid4()),
                     type=ViolationType.LAYER,
                     severity=SeverityLevel.INFO,
                     rule="GB/T 14665-2012 表6 - 图层规则",
-                    description=f"文字应位于专用图层（如：{', '.join(expected_text_layers)}），当前位于: {layer}",
+                    description=f"文字应位于专用图层（如：{', '.join(expected_text_layers)}），当前位于: {layer}。{detail_info}",
                     entity_handle=text['handle'],
                     layer=layer,
+                    entity_details=entity_details,
                     suggestion=f"将文字移至 {expected_text_layers[0]} 图层"
                 ))
     
@@ -131,15 +163,28 @@ class ComplianceCheckerService:
                 )
                 
                 if not is_standard:
+                    # 构建详细的实体信息
+                    entity_details = {
+                        "entity_type": entity_type,
+                        "current_lineweight": lineweight_mm,
+                        "standard_lineweights": standard_weights,
+                        "recommended_lineweight": min(standard_weights, key=lambda x: abs(x-lineweight_mm)),
+                        "tolerance": tolerance
+                    }
+                    
+                    # 构建更详细的描述
+                    detail_info = f"当前线宽: {lineweight_mm:.2f}mm, 推荐: {entity_details['recommended_lineweight']:.2f}mm"
+                    
                     self.violations.append(Violation(
                         id=str(uuid.uuid4()),
                         type=ViolationType.LINEWEIGHT,
                         severity=SeverityLevel.WARNING,
                         rule="GB/T 14665-2012 表1 - 线宽规则",
-                        description=f"线宽 {lineweight_mm:.2f}mm 不符合标准。标准线宽: {standard_weights}",
+                        description=f"线宽 {lineweight_mm:.2f}mm 不符合标准。标准线宽: {standard_weights}。{detail_info}",
                         entity_handle=entity['handle'],
                         layer=entity['layer'],
-                        suggestion=f"使用标准线宽: {min(standard_weights, key=lambda x: abs(x-lineweight_mm))}mm"
+                        entity_details=entity_details,
+                        suggestion=f"使用标准线宽: {entity_details['recommended_lineweight']}mm"
                     ))
     
     def _check_colors(self, dxf_data: Dict[str, Any]):

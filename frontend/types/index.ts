@@ -23,6 +23,7 @@ export interface Violation {
     x?: number
     y?: number
   }
+  entity_details?: Record<string, any>
   suggestion?: string
 }
 
