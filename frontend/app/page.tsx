@@ -60,7 +60,7 @@ export default function Home() {
 
     try {
       // 使用示例 DXF 文件进行测试
-      const response = await fetch('/api/check', {
+      const response = await fetch('/api/demo', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
