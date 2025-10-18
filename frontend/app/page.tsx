@@ -10,6 +10,7 @@ export default function Home() {
   const [uploading, setUploading] = useState(false)
   const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [testingDemo, setTestingDemo] = useState(false)
 
   const handleFileUpload = async (file: File) => {
     setError(null)
@@ -52,6 +53,47 @@ export default function Home() {
     }
   }
 
+  const handleDemoTest = async () => {
+    setError(null)
+    setTestingDemo(true)
+    setAnalyzing(true)
+
+    try {
+      // 使用示例 DXF 文件进行测试
+      const response = await fetch('/api/check', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ useDemo: true })
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '演示加载失败')
+      }
+      
+      const data = await response.json()
+      console.log('演示分析完成:', data)
+
+      // 保存报告到 localStorage
+      if (data.report) {
+        localStorage.setItem(
+          `report_${data.analysis_id}`,
+          JSON.stringify(data.report)
+        )
+      }
+
+      // 跳转到结果页面
+      router.push(`/result/${data.analysis_id}`)
+    } catch (err: any) {
+      setError(err.message || '演示加载失败，请重试')
+    } finally {
+      setTestingDemo(false)
+      setAnalyzing(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-16">
@@ -73,6 +115,27 @@ export default function Home() {
             analyzing={analyzing}
           />
 
+          {/* 演示按钮 */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleDemoTest}
+              disabled={testingDemo || uploading || analyzing}
+              className="
+                px-8 py-3 rounded-lg font-medium text-white
+                bg-gradient-to-r from-purple-500 to-indigo-600
+                hover:from-purple-600 hover:to-indigo-700
+                disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed
+                transition-all duration-300 shadow-md hover:shadow-lg
+                transform hover:scale-105 disabled:transform-none
+              "
+            >
+              {testingDemo ? '加载演示中...' : '🎯 查看演示报告'}
+            </button>
+            <p className="text-sm text-gray-500 mt-2">
+              没有 CAD 文件？点击查看示例检查报告
+            </p>
+          </div>
+
           {/* 错误提示 */}
           {error && (
             <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -85,7 +148,8 @@ export default function Home() {
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-blue-800 text-center">
                 {uploading && '正在上传文件...'}
-                {analyzing && '正在分析图纸，请稍候...'}
+                {testingDemo && '正在加载演示报告...'}
+                {analyzing && !testingDemo && '正在分析图纸，请稍候...'}
               </p>
             </div>
           )}
