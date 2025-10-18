@@ -59,33 +59,78 @@ export default function Home() {
     setAnalyzing(true)
 
     try {
-      // 使用示例 DXF 文件进行测试
-      const response = await fetch('/api/demo', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ useDemo: true })
-      })
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || '演示加载失败')
+      // 本地生成演示报告，无需调用后端
+      const demoId = `demo_${Date.now()}`
+      const demoReport = {
+        analysis_id: demoId,
+        file_id: 'demo_file_001',
+        filename: '示例图纸.dxf',
+        standard: 'GB/T 14665-2012',
+        analysis_time: new Date().toISOString(),
+        total_violations: 6,
+        critical_count: 2,
+        warning_count: 3,
+        info_count: 1,
+        is_compliant: false,
+        compliance_score: 76.5,
+        violations: [
+          {
+            id: 'v1',
+            type: '图层错误',
+            severity: '严重',
+            rule: '图层命名必须符合企业命名规范',
+            description: '发现未按规范命名的图层：Layer1、NewLayer。',
+            layer: 'Layer1',
+            suggestion: '统一使用规范命名，例如：DIM_、TEXT_、CENTER_ 前缀分类。'
+          },
+          {
+            id: 'v2',
+            type: '线宽错误',
+            severity: '严重',
+            rule: '主要轮廓线宽应为 0.5mm 或 0.35mm',
+            description: '检测到 0.13mm 的主轮廓线，过细不符合阅读要求。',
+            layer: 'OUTLINE',
+            suggestion: '将主轮廓线的线宽设置为 0.5mm 或 0.35mm。'
+          },
+          {
+            id: 'v3',
+            type: '字体错误',
+            severity: '警告',
+            rule: '文字应使用统一字体（如 GB/T 14665 推荐字体）',
+            description: '部分文字使用了 Arial 字体。',
+            layer: 'TEXT',
+            suggestion: '将字体统一为 gbenor 或仿宋等规范字体。'
+          },
+          {
+            id: 'v4',
+            type: '尺寸标注错误',
+            severity: '警告',
+            rule: '尺寸线与箭头样式应一致且尺寸单位明确',
+            description: '检测到两种不同箭头样式，且部分标注未显示单位。',
+            layer: 'DIM',
+            suggestion: '统一标注样式，确保单位显示为 mm。'
+          },
+          {
+            id: 'v5',
+            type: '颜色错误',
+            severity: '提示',
+            rule: '按图层出图，颜色使用 ByLayer',
+            description: '若干实体设置了 ByObject 颜色，可能导致出图不一致。',
+            suggestion: '将实体颜色改为 ByLayer。'
+          },
+          {
+            id: 'v6',
+            type: '几何错误',
+            severity: '警告',
+            rule: '同心圆与圆心应完全重合',
+            description: '检测到同心圆偏心 0.2mm。',
+            suggestion: '调整圆心坐标，确保重合。'
+          }
+        ]
       }
-      
-      const data = await response.json()
-      console.log('演示分析完成:', data)
 
-      // 保存报告到 localStorage
-      if (data.report) {
-        localStorage.setItem(
-          `report_${data.analysis_id}`,
-          JSON.stringify(data.report)
-        )
-      }
-
-      // 跳转到结果页面
-      router.push(`/result/${data.analysis_id}`)
+      localStorage.setItem(`report_${demoId}`, JSON.stringify(demoReport))
+      router.push(`/result/${demoId}`)
     } catch (err: any) {
       setError(err.message || '演示加载失败，请重试')
     } finally {
