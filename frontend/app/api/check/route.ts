@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
+import FormData from 'form-data'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://103.109.20.169:10437'
 
@@ -18,14 +19,19 @@ export async function POST(request: NextRequest) {
         
         try {
           const fileBuffer = await readFile(demoFilePath)
-          const blob = new Blob([fileBuffer], { type: 'application/dxf' })
+          
+          // 使用 form-data 包创建正确的 FormData
           const formData = new FormData()
-          formData.append('file', blob, 'demo_sample.dxf')
+          formData.append('file', fileBuffer, {
+            filename: 'demo_sample.dxf',
+            contentType: 'application/dxf'
+          })
           
           // 上传到后端
           const uploadResponse = await fetch(`${BACKEND_URL}/api/v1/upload`, {
             method: 'POST',
-            body: formData,
+            body: formData as any,
+            headers: formData.getHeaders(),
           })
           
           if (!uploadResponse.ok) {
